@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ECHEVERRÍA</title>
+<title>Secret Santa</title>
 <link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Patrick+Hand&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#1f3a5f;--cream:#f3e6c4;--red:#b3342b;--green:#2f5d46;--gold:#f1c24b;--ink:#2a2118}
@@ -36,11 +36,17 @@ input{font:inherit;font-size:30px;text-align:center;text-transform:uppercase;wid
 .btn:active{transform:translate(3px,3px);box-shadow:none}
 .x{background:none;border:0;font:inherit;text-decoration:underline;cursor:pointer;display:block;margin:14px auto 0;color:var(--ink)}
 .err{color:var(--red);margin:8px 0 0}
+.card{max-height:92vh;overflow:auto}
+.sep{border:0;border-top:3px dashed var(--green);margin:18px 0 8px}
+.card h3{font:28px 'Caveat Brush',cursive;margin:0;color:var(--navy)}
+.card small{display:block;margin-bottom:6px}
+textarea{font:inherit;font-size:19px;width:100%;height:64px;border:3px solid var(--ink);background:#fff8e4;padding:6px;resize:none;text-align:left;margin-bottom:6px}
+.ok{color:var(--green);margin:8px 0 0}
 @media (prefers-reduced-motion:reduce){.flake,.card{animation:none}}
 </style>
 </head>
 <body>
-<h1>ECHEVERRÍA SECRETO</h1>
+<h1>Secret Santa</h1>
 <p class="sub">Toca tu regalo para entrar</p>
 
 <svg class="tree" viewBox="0 0 300 330" aria-hidden="true">
@@ -111,9 +117,11 @@ const open = html => { $('box').innerHTML = html + '<button class="x" onclick="c
 const closeM = () => $('modal').classList.remove('on');
 $('modal').onclick = e => { if (e.target.id === 'modal') closeM(); };
 
+let cur = {};
 async function enter(id, name, code, bad) {
   open('<h2>Abriendo…</h2>');
   const r = await rpc('enter', code ? {p_id: id, p_code: code} : {p_id: id});
+  cur = {id, code: String(r.code || code || '').trim().toUpperCase()};
   if (r.status === 'need_code' || r.status === 'bad_code') {
     open(`<h2>Hola, ${esc(name)}</h2><p>Escribe tu código secreto</p>
       <input id="c" maxlength="8" autocomplete="off" autofocus><br>
@@ -129,10 +137,22 @@ async function enter(id, name, code, bad) {
 }
 
 function card(r) {
-  if (r.status === 'nodraw') return open('<h2>Aún no hay sorteo</h2><p>Todavía no te asignaron a nadie.</p>');
-  open(`<h2>Tu amigo secreto es</h2><div class="who">${esc(r.name)}</div>
-    <p class="lbl">Hobbies</p><p>${esc(r.hobbies) || '—'}</p>
-    <p class="lbl">Intereses</p><p>${esc(r.interests) || '—'}</p>`);
+  const top = r.status === 'nodraw'
+    ? '<h2>Aún no hay sorteo</h2><p>Todavía no te asignaron a nadie.</p>'
+    : `<h2>Tu amigo secreto es</h2><div class="who">${esc(r.name)}</div>
+       <p class="lbl">Sus hobbies</p><p>${esc(r.hobbies) || 'Aún no ha escrito nada'}</p>
+       <p class="lbl">Sus intereses</p><p>${esc(r.interests) || 'Aún no ha escrito nada'}</p>`;
+  open(top + `<hr class="sep"><h3>Tu tarjeta</h3>
+    <small>Esto lo verá quien te regale. Escríbelo con cariño y respeto: el admin puede borrar lo que no cumpla.</small>
+    <p class="lbl">Mis hobbies</p><textarea id="mh" maxlength="200" placeholder="Ej: pintar, correr, jugar videojuegos">${esc(r.my_hobbies)}</textarea>
+    <p class="lbl">Mis intereses</p><textarea id="mi" maxlength="200" placeholder="Ej: gatos, café, series de misterio">${esc(r.my_interests)}</textarea>
+    <button class="btn" onclick="saveProfile()">Guardar mi tarjeta</button><p class="ok" id="sv"></p>`);
+}
+
+async function saveProfile() {
+  $('sv').textContent = 'Guardando…';
+  const r = await rpc('save_profile', {p_id: cur.id, p_code: cur.code, p_hobbies: $('mh').value, p_interests: $('mi').value});
+  $('sv').textContent = r.status === 'ok' ? 'Guardado ✓' : 'No se pudo guardar. Vuelve a entrar con tu código.';
 }
 init();
 </script>
