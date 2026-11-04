@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Secret Santa</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1f3a5f;--cream:#f3e6c4;--red:#b3342b;--green:#2f5d46;--gold:#f1c24b;--ink:#2a2118}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;overflow-x:hidden;font:21px 'Patrick Hand',cursive;color:var(--ink);background:linear-gradient(#17304f,#1f3a5f 55%,#2b4d77)}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;opacity:.2;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+.flake{position:fixed;top:-10px;background:#fff;border-radius:50%;opacity:.85;animation:fall linear infinite;pointer-events:none}
+@keyframes fall{to{transform:translateY(105vh) translateX(30px)}}
+h1{font:clamp(44px,9vw,84px) 'Caveat Brush',cursive;color:var(--cream);text-align:center;margin:28px 12px 0;text-shadow:4px 4px 0 var(--red);transform:rotate(-2deg)}
+.sub{text-align:center;color:var(--cream);margin:6px 12px 0}
+.tree{display:block;width:min(340px,80vw);margin:0 auto;position:relative;z-index:1}
+.hill{position:relative;background:var(--cream);border-top:4px solid var(--ink);border-radius:50% 50% 0 0/70px 70px 0 0;margin-top:-34px;padding:70px 12px 50px}
+.hill p{text-align:center;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:16px 10px;max-width:960px;margin:auto}
+.gift{background:none;border:0;cursor:pointer;font:inherit;color:var(--ink);padding:4px;line-height:1.05}
+.gift svg{display:block;margin:0 auto 4px;transition:transform .2s}
+.gift:hover svg,.gift:focus-visible svg{transform:translateY(-8px) rotate(-6deg)}
+.gift:focus-visible{outline:3px dashed var(--red);outline-offset:2px}
+.modal{position:fixed;inset:0;z-index:5;display:none;place-items:center;background:rgba(23,48,79,.8);padding:16px}
+.modal.on{display:grid}
+.card{background:var(--cream);border:4px solid var(--ink);border-radius:6px;box-shadow:8px 8px 0 var(--red);max-width:420px;width:100%;padding:26px 22px;text-align:center;position:relative;animation:pop .4s cubic-bezier(.3,1.6,.5,1)}
+.card::before{content:"";position:absolute;inset:7px;border:2px dashed var(--green);pointer-events:none}
+@keyframes pop{from{transform:scale(.6) rotate(-8deg);opacity:0}}
+.card h2{font:38px 'Caveat Brush',cursive;margin:0 0 6px;color:var(--red)}
+.who{font:clamp(40px,10vw,56px) 'Caveat Brush',cursive;line-height:1;margin:6px 0 14px;color:var(--green)}
+.lbl{font-size:18px;color:var(--red);margin:10px 0 0}
+.code{font:54px 'Caveat Brush',cursive;letter-spacing:6px;background:var(--navy);color:var(--gold);border:3px solid var(--ink);padding:4px 10px;display:inline-block;margin:10px 0}
+input{font:inherit;font-size:30px;text-align:center;text-transform:uppercase;width:170px;border:3px solid var(--ink);background:#fff8e4;padding:6px}
+.btn{font:inherit;font-size:22px;background:var(--red);color:var(--cream);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:6px 20px;cursor:pointer;margin-top:12px}
+.btn:active{transform:translate(3px,3px);box-shadow:none}
+.x{background:none;border:0;font:inherit;text-decoration:underline;cursor:pointer;display:block;margin:14px auto 0;color:var(--ink)}
+.err{color:var(--red);margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){.flake,.card{animation:none}}
+</style>
+</head>
+<body>
+<h1>Secret Santa</h1>
+<p class="sub">Toca tu regalo para entrar</p>
+
+<svg class="tree" viewBox="0 0 300 330" aria-hidden="true">
+  <g stroke="#2a2118" stroke-width="4" stroke-linejoin="round">
+    <rect x="128" y="276" width="44" height="40" fill="#7a4a2a"/>
+    <path d="M150 150 L38 288 H262 Z" fill="#2f5d46"/>
+    <path d="M150 90 L58 205 H242 Z" fill="#3a6b52"/>
+    <path d="M150 30 L78 128 H222 Z" fill="#2f5d46"/>
+    <path d="M150 30 L124 66 Q150 78 176 66 Z" fill="#f3e6c4"/>
+    <path d="M110 130 Q150 150 190 130 L200 148 Q150 168 100 148 Z" fill="#f3e6c4" stroke-width="3"/>
+    <path d="M75 215 Q150 240 225 215 L238 238 Q150 262 62 238 Z" fill="#f3e6c4" stroke-width="3"/>
+    <path d="M150 6 l8 18 19 1-15 12 5 19-17-10-17 10 5-19-15-12 19-1z" fill="#f1c24b"/>
+  </g>
+  <g stroke="#2a2118" stroke-width="2.5">
+    <circle cx="125" cy="100" r="7" fill="#b3342b"/><circle cx="170" cy="115" r="7" fill="#f1c24b"/>
+    <circle cx="105" cy="170" r="8" fill="#f1c24b"/><circle cx="150" cy="180" r="8" fill="#b3342b"/>
+    <circle cx="198" cy="175" r="8" fill="#f3e6c4"/><circle cx="85" cy="258" r="9" fill="#b3342b"/>
+    <circle cx="140" cy="268" r="9" fill="#f1c24b"/><circle cx="205" cy="262" r="9" fill="#f3e6c4"/>
+    <circle cx="240" cy="276" r="8" fill="#b3342b"/>
+  </g>
+</svg>
+
+<main class="hill">
+  <p id="msg">Cargando regalos…</p>
+  <div class="grid" id="grid"></div>
+</main>
+
+<div class="modal" id="modal"><div class="card" id="box"></div></div>
+
+<script>
+// ====== PEGA AQUÍ TUS DATOS DE SUPABASE (Project Settings > API) ======
+const SUPA_URL = 'https://nfjctriavfbilzmhzknj.supabase.co';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mamN0cmlhdmZiaWx6bWh6a25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4MDUyMTIsImV4cCI6MjEwOTM4MTIxMn0.iRtesk-A6bPsKRb7jwjDICOReYNGasOo4Vefa1b4b0U';
+// =======================================================================
+
+const rpc = (fn, body) => fetch(`${SUPA_URL}/rest/v1/rpc/${fn}`, {
+  method: 'POST',
+  headers: {apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY, 'Content-Type': 'application/json'},
+  body: JSON.stringify(body || {})
+}).then(r => r.json());
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
+const COLORS = [['#b3342b','#f3e6c4'],['#2f5d46','#f1c24b'],['#f3e6c4','#b3342b'],['#1f3a5f','#f1c24b'],['#f1c24b','#b3342b'],['#3a6b52','#f3e6c4']];
+
+const giftSVG = (i) => { const [c, r] = COLORS[i % COLORS.length];
+  return `<svg viewBox="0 0 80 80" width="78" aria-hidden="true"><g stroke="#2a2118" stroke-width="3" stroke-linejoin="round">
+  <rect x="10" y="32" width="60" height="42" rx="3" fill="${c}"/><rect x="6" y="22" width="68" height="14" rx="3" fill="${c}"/>
+  <rect x="34" y="22" width="12" height="52" fill="${r}"/>
+  <path d="M40 22C26 0 10 10 26 22ZM40 22C54 0 70 10 54 22Z" fill="${r}"/></g></svg>`; };
+
+// nieve
+for (let i = 0; i < 45; i++) { const f = document.createElement('i'); f.className = 'flake';
+  const s = 2 + Math.random() * 4; f.style.cssText = `left:${Math.random()*100}vw;width:${s}px;height:${s}px;animation-duration:${6+Math.random()*10}s;animation-delay:-${Math.random()*14}s`;
+  document.body.appendChild(f); }
+
+async function init() {
+  try {
+    const names = await rpc('get_names');
+    if (!Array.isArray(names)) throw 0;
+    $('msg').textContent = names.length ? 'Solo abre el tuyo 🎁' : 'Todavía no hay participantes.';
+    $('grid').innerHTML = names.map((n, i) => `<button class="gift" data-id="${n.pid}" data-n="${esc(n.pname)}">${giftSVG(i)}${esc(n.pname)}</button>`).join('');
+  } catch (e) { $('msg').textContent = 'No se pudo cargar. Revisa la URL y la anon key.'; }
+}
+$('grid').onclick = e => { const b = e.target.closest('.gift'); if (b) enter(+b.dataset.id, b.dataset.n); };
+
+const open = html => { $('box').innerHTML = html + '<button class="x" onclick="closeM()">cerrar</button>'; $('modal').classList.add('on'); };
+const closeM = () => $('modal').classList.remove('on');
+$('modal').onclick = e => { if (e.target.id === 'modal') closeM(); };
+
+async function enter(id, name, code, bad) {
+  open('<h2>Abriendo…</h2>');
+  const r = await rpc('enter', code ? {p_id: id, p_code: code} : {p_id: id});
+  if (r.status === 'need_code' || r.status === 'bad_code') {
+    open(`<h2>Hola, ${esc(name)}</h2><p>Escribe tu código secreto</p>
+      <input id="c" maxlength="8" autocomplete="off" autofocus><br>
+      ${r.status === 'bad_code' ? '<p class="err">Ese código no es el tuyo. Prueba de nuevo.</p>' : ''}
+      <button class="btn" onclick="enter(${id},'${esc(name).replace(/'/g,"\\'")}',document.getElementById('c').value)">Entrar</button>`);
+    $('c').addEventListener('keydown', e => e.key === 'Enter' && $('c').nextElementSibling && enter(id, name, $('c').value));
+  } else if (r.status === 'ok' || r.status === 'nodraw') {
+    if (r.code) open(`<h2>¡Primera vez, ${esc(name)}!</h2><p>Este es tu código secreto. Anótalo: no se vuelve a mostrar y lo necesitas para volver a entrar.</p>
+      <div class="code">${esc(r.code)}</div><br><button class="btn" id="go">Abrir mi regalo</button>`),
+      $('go').onclick = () => card(r);
+    else card(r);
+  } else open('<h2>Algo falló</h2><p>Intenta de nuevo en un momento.</p>');
+}
+
+function card(r) {
+  if (r.status === 'nodraw') return open('<h2>Aún no hay sorteo</h2><p>Todavía no te asignaron a nadie.</p>');
+  open(`<h2>Tu amigo secreto es</h2><div class="who">${esc(r.name)}</div>
+    <p class="lbl">Hobbies</p><p>${esc(r.hobbies) || '—'}</p>
+    <p class="lbl">Intereses</p><p>${esc(r.interests) || '—'}</p>`);
+}
+init();
+</script>
+</body>
+</html>
